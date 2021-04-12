@@ -27,7 +27,8 @@
 		"formulahendry.code-runner",
 		"streetsidesoftware.code-spell-checker-portuguese-brazilian",
 		"ms-vscode.cpptools",
-		"ms-azuretools.vscode-docker"
+		"ms-azuretools.vscode-docker",
+		"calebporzio.better-phpunit"
 	]
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	// "forwardPorts": [],
