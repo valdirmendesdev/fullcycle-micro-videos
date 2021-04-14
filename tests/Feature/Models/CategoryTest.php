@@ -9,9 +9,11 @@ use Tests\TestCase;
 class CategoryTest extends TestCase
 {
     use DatabaseMigrations;
+    private $regexpUUID = "/[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}/";
 
     public function testList()
     {
+
         factory(Category::class, 1)->create();
         $categories = Category::all();
         $this->assertCount(1, $categories);
@@ -37,6 +39,8 @@ class CategoryTest extends TestCase
         ]);
         $category->refresh();
 
+        $this->assertNotEmpty($category->id);
+        $this->assertRegExp($this->regexpUUID, $category->id);
         $this->assertEquals('test1', $category->name);
         $this->assertNull($category->description);
         $this->assertTrue($category->is_active);
