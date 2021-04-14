@@ -12,4 +12,7 @@ class Genre extends Model
     protected $keyType = 'string';
     protected $fillable = ['name', 'is_active'];
     protected $dates = ['deleted_at'];
+    protected $casts = [
+        'is_active' => 'boolean'
+    ];
 }

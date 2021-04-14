@@ -64,7 +64,7 @@ class CategoryTest extends TestCase
 
         $data = [
             'name' => 'test_name_updated',
-            'name' => 'test description',
+            'description' => 'test_description',
             'is_active' => true,
         ];
         $category->update($data);
@@ -72,5 +72,13 @@ class CategoryTest extends TestCase
         foreach ($data as $key => $value) {
             $this->assertEquals($value, $category->{$key});
         }
+    }
+
+    public function testDelete()
+    {
+        $category = factory(Category::class, 1)->create()->first();
+        $category->delete();
+        $categories = Category::all();
+        $this->assertCount(0, $categories);
     }
 }
