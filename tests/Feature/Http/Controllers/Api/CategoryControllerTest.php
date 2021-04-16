@@ -93,4 +93,18 @@ class CategoryControllerTest extends TestCase
                 Lang::get('validation.boolean', ['attribute' => 'is active'])
             ]);
     }
+
+    public function testStore()
+    {
+        $response = $this->json('POST', route('categories.store'), [
+            'name' => 'test'
+        ]);
+
+        $id = $response->json('id');
+        $category = Category::find($response->json('id'));
+
+        $response
+            ->assertStatus(201);
+        // ->assertJson();
+    }
 }

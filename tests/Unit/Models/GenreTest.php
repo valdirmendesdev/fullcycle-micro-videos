@@ -49,4 +49,10 @@ class GenreTest extends TestCase
         }
         $this->assertCount(count($dates), $this->sut->getDates());
     }
+
+    public function testCasts()
+    {
+        $casts = ['is_active' => 'boolean'];
+        $this->assertEquals($casts, $this->sut->getCasts());
+    }
 }

@@ -9,7 +9,6 @@ use Tests\TestCase;
 class GenreTest extends TestCase
 {
     use DatabaseMigrations;
-    private $regexpUUID = "/[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}/";
 
     public function testList()
     {
@@ -38,7 +37,8 @@ class GenreTest extends TestCase
         $genre->refresh();
 
         $this->assertNotEmpty($genre->id);
-        $this->assertRegExp($this->regexpUUID, $genre->id);
+        $this->assertEquals(36, strlen($genre->id));
+        $this->assertTrue((bool)preg_match('/^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i', $genre->id));
         $this->assertEquals('test1', $genre->name);
         $this->assertTrue($genre->is_active);
 
@@ -47,6 +47,12 @@ class GenreTest extends TestCase
             'is_active' => false,
         ]);
         $this->assertFalse($genre->is_active);
+
+        $genre = Genre::create([
+            'name' => 'test1',
+            'is_active' => true,
+        ]);
+        $this->assertTrue($genre->is_active);
     }
 
     public function testUpdate()
