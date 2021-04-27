@@ -9,6 +9,17 @@ use Illuminate\Support\Facades\Lang;
 
 trait TestValidations
 {
+
+  protected function assertInvalidationInStoreAction(
+    array $data,
+    string $rule,
+    $ruleParams = []
+  ) {
+    $response = $this->json('POST', $this->routeStore(), $data);
+    $fields = array_keys($data);
+    $this->assertInvalidationFields($response, $fields, $rule, $ruleParams);
+  }
+
   protected function assertInvalidationFields(
     TestResponse $response,
     array $fields,
