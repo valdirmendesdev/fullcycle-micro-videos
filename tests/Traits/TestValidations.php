@@ -20,7 +20,7 @@ trait TestValidations
       ->assertJsonValidationErrors($fields);
 
     foreach ($fields as $field) {
-      $fieldName = str_replace('_', '', $field);
+      $fieldName = str_replace('_', ' ', $field);
       $response->assertJsonFragment([
         Lang::get("validation.{$rule}", ['attribute' => $fieldName] + $ruleParams)
       ]);
