@@ -3,46 +3,31 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Category;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 
 abstract class BasicCrudController extends Controller
 {
     protected abstract function model();
-
-    private $rules = [
-        'name' => 'required|max:255',
-        'is_active' => 'boolean',
-    ];
+    protected abstract function rulesStore();
 
     public function index()
     {
         return $this->model()::all();
     }
 
-    // public function store(Request $request)
-    // {
-    //     $this->validate($request, $this->rules);
-    //     $category = $this->model()::create($request->all());
-    //     $category->refresh();
-    //     return $category;
-    // }
+    public function store(Request $request)
+    {
+        $validatedDate = $this->validate($request, $this->rulesStore());
+        $obj = $this->model()::create($validatedDate);
+        $obj->refresh();
+        return $obj;
+    }
 
-    // public function show(Category $category)
-    // {
-    //     return $category;
-    // }
-
-    // public function update(Request $request, Category $category)
-    // {
-    //     $this->validate($request, $this->rules);
-    //     $category->update($request->all());
-    //     return $category;
-    // }
-
-    // public function destroy(Category $category)
-    // {
-    //     $category->delete();
-    //     return response()->noContent();
-    // }
+    protected function findOrFail($id)
+    {
+        $model = $this->model();
+        $keyName = (new $model)->getRouteKeyName();
+        return $this->model()::where($keyName, $id)->firstOrFail();
+    }
 }
