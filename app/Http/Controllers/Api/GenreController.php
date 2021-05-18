@@ -2,11 +2,9 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
 use App\Models\Genre;
-use Illuminate\Http\Request;
 
-class GenreController extends Controller
+class GenreController extends BasicCrudController
 {
 
     private $rules = [
@@ -14,34 +12,18 @@ class GenreController extends Controller
         'is_active' => 'boolean',
     ];
 
-    public function index()
+    public function model()
     {
-        return Genre::all();
+        return Genre::class;
     }
 
-    public function store(Request $request)
+    protected function rulesStore()
     {
-        $this->validate($request, $this->rules);
-        $genre = Genre::create($request->all());
-        $genre->refresh();
-        return $genre;
+        return $this->rules;
     }
 
-    public function show(Genre $genre)
+    protected function rulesUpdate()
     {
-        return $genre;
-    }
-
-    public function update(Request $request, Genre $genre)
-    {
-        $this->validate($request, $this->rules);
-        $genre->update($request->all());
-        return $genre;
-    }
-
-    public function destroy(Genre $genre)
-    {
-        $genre->delete();
-        return response()->noContent();
+        return $this->rules;
     }
 }

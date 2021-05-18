@@ -8,5 +8,6 @@ use Faker\Generator as Faker;
 $factory->define(CastMember::class, function (Faker $faker) {
     return [
         'name' => $faker->name,
+        'type' => $faker->randomNumber([1, 2])
     ];
 });

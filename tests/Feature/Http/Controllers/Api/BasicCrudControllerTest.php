@@ -83,4 +83,32 @@ class BasicCrudControllerTest extends TestCase
         $reflectionMethod->setAccessible(true);
         $reflectionMethod->invokeArgs($this->controller, [0]);
     }
+
+    public function testShow()
+    {
+        $category = CategoryStub::create(['name' => 'test_name', 'description' => 'test_description']);
+        $result = $this->controller->show($category->id);
+        $this->assertEquals($result->toArray(), CategoryStub::find(1)->toArray());
+    }
+
+    public function testUpdate()
+    {
+        $category = CategoryStub::create(['name' => 'test', 'description' => 'test']);
+        $request = \Mockery::mock(Request::class);
+        $request
+            ->shouldReceive('all')
+            ->once()
+            ->andReturn(['name' => 'test_name', 'description' => 'test_description']);
+        $result = $this->controller->update($request, $category->id);
+        $this->assertEquals($result->toArray(), CategoryStub::find(1)->toArray());
+    }
+
+    public function testDestroy()
+    {
+        $category = CategoryStub::create(['name' => 'test_name', 'description' => 'test_description']);
+        $result = $this->controller->destroy($category->id);
+        $this->createTestResponse($result)
+            ->assertNoContent();
+        $this->assertCount(0, CategoryStub::all());
+    }
 }
