@@ -7,6 +7,8 @@ use Illuminate\Validation\Rule;
 
 class CastMemberController extends BasicCrudController
 {
+    private $rules;
+
     public function __construct()
     {
         $this->rules = [

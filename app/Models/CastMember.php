@@ -16,4 +16,7 @@ class CastMember extends Model
     protected $keyType = 'string';
     protected $fillable = ['name', 'type'];
     protected $dates = ['deleted_at'];
+    protected $casts = [
+        'type' => 'integer'
+    ];
 }
