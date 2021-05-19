@@ -3,13 +3,17 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\CastMember;
+use Illuminate\Validation\Rule;
 
 class CastMemberController extends BasicCrudController
 {
-    private $rules = [
-        'name' => 'required|max:255',
-        'type' => 'required|between:1,2',
-    ];
+    public function __construct()
+    {
+        $this->rules = [
+            'name' => 'required|max:255',
+            'type' => ['required', Rule::in([CastMember::TYPE_DIRECTOR, CastMember::TYPE_ACTOR])],
+        ];
+    }
 
     protected function model()
     {
