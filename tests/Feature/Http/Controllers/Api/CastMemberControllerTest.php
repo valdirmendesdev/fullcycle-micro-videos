@@ -18,7 +18,9 @@ class CastMemberControllerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->castMember = factory(CastMember::class)->create();
+        $this->castMember = factory(CastMember::class)->create([
+            'type' => CastMember::TYPE_DIRECTOR
+        ]);
     }
 
     public function testIndex()
@@ -70,12 +72,9 @@ class CastMemberControllerTest extends TestCase
 
     public function testUpdate()
     {
-        factory(CastMember::class)->create([
-            'type' => CastMember::TYPE_ACTOR
-        ]);
         $data = [
             'name' => 'test',
-            'type' => CastMember::TYPE_DIRECTOR
+            'type' => CastMember::TYPE_ACTOR
         ];
         $response = $this->assertUpdate($data, $data + ['deleted_at' => null]);
         $response->assertJsonStructure([

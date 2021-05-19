@@ -77,12 +77,9 @@ class GenreControllerTest extends TestCase
 
     public function testUpdate()
     {
-        $this->category = factory(Genre::class)->create([
-            'is_active' => false
-        ]);
         $data = [
             'name' => 'test',
-            'is_active' => true
+            'is_active' => false
         ];
         $response = $this->assertUpdate($data, $data + ['deleted_at' => null]);
         $response->assertJsonStructure([
