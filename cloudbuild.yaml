@@ -24,6 +24,6 @@ steps:
   name: 'docker'
   args: ['exec', '-t','micro-videos-app','php','/var/www/artisan', 'migrate']
 
-- id: 'Rodando PHPunit tests'
+- id: 'Rodando PHP unit tests'
   name: 'docker'
   args: ['exec', '-t','micro-videos-app','php','/var/www/vendor/bin/phpunit','-c', '/var/www/phpunit.xml']
