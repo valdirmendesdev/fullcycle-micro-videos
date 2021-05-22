@@ -28,10 +28,13 @@ class VideoController extends BasicCrudController
     public function store(Request $request)
     {
         $validatedDate = $this->validate($request, $this->rulesStore());
+        $self = $this;
         /** @var $obj */
-        $obj = $this->model()::create($validatedDate);
-        $obj->categories()->sync($request->get('categories_id'));
-        $obj->genres()->sync($request->get('genres_id'));
+        $obj = \DB::transaction(function () use ($request, $validatedDate, $self) {
+            $obj = $this->model()::create($validatedDate);
+            $self->handleRelations($obj, $request);
+            return $obj;
+        });
         $obj->refresh();
         return $obj;
     }
@@ -40,10 +43,19 @@ class VideoController extends BasicCrudController
     {
         $obj = $this->findOrFail($id);
         $validatedDate = $this->validate($request, $this->rulesUpdate());
-        $obj->update($validatedDate);
-        $obj->categories()->sync($request->get('categories_id'));
-        $obj->genres()->sync($request->get('genres_id'));
+        $self = $this;
+        $obj = \DB::transaction(function () use ($request, $validatedDate, $self, $obj) {
+            $obj->update($validatedDate);
+            $self->handleRelations($obj, $request);
+            return $obj;
+        });
         return $obj;
+    }
+
+    protected function handleRelations(Video $video, Request $request)
+    {
+        $video->categories()->sync($request->get('categories_id'));
+        $video->genres()->sync($request->get('genres_id'));
     }
 
     public function model()
