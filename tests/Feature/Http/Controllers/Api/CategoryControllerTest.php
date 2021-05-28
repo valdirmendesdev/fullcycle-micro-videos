@@ -3,6 +3,7 @@
 namespace Tests\Feature\Http\Controllers\Api;
 
 use App\Models\Category;
+use App\Models\Genre;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Foundation\Testing\TestResponse;
 use Tests\TestCase;
@@ -14,11 +15,16 @@ class CategoryControllerTest extends TestCase
     use DatabaseMigrations, TestValidations, TestSaves;
 
     private $category;
+    public $sendData;
 
     protected function setUp(): void
     {
         parent::setUp();
         $this->category = factory(Category::class)->create();
+        $this->sendData = [
+            'name' => 'test',
+            'description' => null,
+        ];
     }
 
     public function testIndex()
@@ -39,25 +45,49 @@ class CategoryControllerTest extends TestCase
             ->assertJson($this->category->toArray());
     }
 
-    public function testInvalidationData()
+    public function testInvalidationRequired()
     {
         $data = [
-            'name' => ''
+            'name' => '',
+            'genres_id' => ''
         ];
         $this->assertInvalidationInStoreAction($data, 'required');
         $this->assertInvalidationInUpdateAction($data, 'required');
+    }
 
-        $data = [
-            'name' => str_repeat('a', 256),
-        ];
-        $this->assertInvalidationInStoreAction($data, 'max.string', ['max' => 255]);
-        $this->assertInvalidationInUpdateAction($data, 'max.string', ['max' => 255]);
-
+    public function testInvalidationBoolean()
+    {
         $data = [
             'is_active' => 'a'
         ];
         $this->assertInvalidationInStoreAction($data, 'boolean');
         $this->assertInvalidationInUpdateAction($data, 'boolean');
+    }
+
+    public function testInvalidationMax()
+    {
+        $data = [
+            'name' => str_repeat('a', 256),
+        ];
+        $this->assertInvalidationInStoreAction($data, 'max.string', ['max' => 255]);
+        $this->assertInvalidationInUpdateAction($data, 'max.string', ['max' => 255]);
+    }
+
+    public function testInvalidationRelationships()
+    {
+        $data = [
+            'genres_id' => 's'
+        ];
+
+        $this->assertInvalidationInStoreAction($data, 'array');
+        $this->assertInvalidationInUpdateAction($data, 'array');
+
+        $data = [
+            'genres_id' => [100]
+        ];
+
+        $this->assertInvalidationInStoreAction($data, 'exists');
+        $this->assertInvalidationInUpdateAction($data, 'exists');
     }
 
     protected function assertInvalidationRequired(TestResponse $response)
@@ -77,47 +107,60 @@ class CategoryControllerTest extends TestCase
         $response->assertJsonValidationErrors(['is_active']);
     }
 
-    public function testStore()
+    public function testSave()
     {
+        $genre = factory(Genre::class)->create();
         $data = [
-            'name' => 'test'
+            [
+                'send_data' => $this->sendData + [
+                    'genres_id' => [$genre->id]
+                ],
+                'test_data' => $this->sendData + [
+                    'is_active' => true
+                ],
+            ],
+            [
+                'send_data' => $this->sendData + [
+                    'name' => 'test',
+                    'description' => 'description',
+                    'is_active' => false,
+                    'genres_id' => [$genre->id]
+                ],
+                'test_data' => $this->sendData + [
+                    'name' => 'test',
+                    'description' => 'description',
+                    'is_active' => false,
+                ],
+            ],
+            [
+                'send_data' => $this->sendData + [
+                    'description' => null,
+                    'genres_id' => [$genre->id]
+                ],
+                'test_data' => $this->sendData + [
+                    'description' => null,
+                ],
+            ]
         ];
-        $response = $this->assertStore($data, $data + ['description' => null, 'is_active' => true, 'deleted_at' => null]);
-        $response->assertJsonStructure([
-            'created_at', 'updated_at'
-        ]);
 
-        $data = [
-            'name' => 'test',
-            'is_active' => false,
-            'description' => 'description'
-        ];
-        $this->assertStore($data, $data + ['description' => 'description', 'is_active' => false]);
-    }
-
-    public function testUpdate()
-    {
-        $data = [
-            'name' => 'test',
-            'description' => 'test',
-            'is_active' => true
-        ];
-        $response = $this->assertUpdate($data, $data + ['deleted_at' => null]);
-        $response->assertJsonStructure([
-            'created_at', 'updated_at'
-        ]);
-
-        $data = [
-            'name' => 'test',
-            'description' => '',
-        ];
-        $this->assertUpdate($data, array_merge($data, ['description' => null]));
-
-        $data['description'] = 'test';
-        $this->assertUpdate($data, array_merge($data, ['description' => 'test']));
-
-        $data['description'] = null;
-        $this->assertUpdate($data, array_merge($data, ['description' => null]));
+        foreach ($data as $key => $value) {
+            $response = $this->assertStore(
+                $value['send_data'],
+                $value['test_data'] + ['deleted_at' => null]
+            );
+            $response->assertJsonStructure([
+                'created_at',
+                'updated_at'
+            ]);
+            $response = $this->assertUpdate(
+                $value['send_data'],
+                $value['test_data'] + ['deleted_at' => null]
+            );
+            $response->assertJsonStructure([
+                'created_at',
+                'updated_at'
+            ]);
+        }
     }
 
     public function testDelete()
