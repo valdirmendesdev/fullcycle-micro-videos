@@ -11,6 +11,7 @@ class CategoryController extends BasicCrudController
         'name' => 'required|max:255',
         'description' => 'nullable',
         'is_active' => 'boolean',
+        'genres_id' => 'required|array|exists:genres,id',
     ];
 
     public function model()

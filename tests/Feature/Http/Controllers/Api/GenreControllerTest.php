@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Http\Controllers\Api;
 
+use App\Models\Category;
 use App\Models\Genre;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Foundation\Testing\TestResponse;
@@ -20,6 +21,9 @@ class GenreControllerTest extends TestCase
     {
         parent::setUp();
         $this->genre = factory(Genre::class)->create();
+        $this->sendData = [
+            'name' => 'genre',
+        ];
     }
 
     public function testIndex()
@@ -38,20 +42,27 @@ class GenreControllerTest extends TestCase
             ->assertJson($this->genre->toArray());
     }
 
-    public function testInvalidData()
+    public function testInvalidationRequired()
     {
         $data = [
-            'name' => ''
+            'name' => '',
+            'categories_id' => ''
         ];
         $this->assertInvalidationInStoreAction($data, 'required');
         $this->assertInvalidationInUpdateAction($data, 'required');
+    }
 
+    public function testInvalidationMax()
+    {
         $data = [
-            'name' => str_repeat('a', 256)
+            'name' => str_repeat('a', 256),
         ];
         $this->assertInvalidationInStoreAction($data, 'max.string', ['max' => 255]);
         $this->assertInvalidationInUpdateAction($data, 'max.string', ['max' => 255]);
+    }
 
+    public function testInvalidationBoolean()
+    {
         $data = [
             'is_active' => 'a'
         ];
@@ -59,32 +70,72 @@ class GenreControllerTest extends TestCase
         $this->assertInvalidationInUpdateAction($data, 'boolean');
     }
 
-    public function testStore()
+    public function testInvalidationRelationships()
     {
         $data = [
-            'name' => 'test'
+            'categories_id' => 's'
         ];
-        $response = $this->assertStore($data, $data + ['is_active' => true, 'deleted_at' => null]);
-        $response->assertJsonStructure([
-            'created_at', 'updated_at'
-        ]);
+
+        $this->assertInvalidationInStoreAction($data, 'array');
+        $this->assertInvalidationInUpdateAction($data, 'array');
+
         $data = [
-            'name' => 'test',
-            'is_active' => false
+            'categories_id' => [100]
         ];
-        $response = $this->assertStore($data, $data + ['is_active' => false]);
+
+        $this->assertInvalidationInStoreAction($data, 'exists');
+        $this->assertInvalidationInUpdateAction($data, 'exists');
     }
 
-    public function testUpdate()
+    public function testSave()
     {
+        $category = factory(Category::class)->create();
         $data = [
-            'name' => 'test',
-            'is_active' => false
+            [
+                'send_data' => $this->sendData + [
+                    'categories_id' => [$category->id]
+                ],
+                'test_data' => $this->sendData + [
+                    'is_active' => true
+                ],
+            ],
+            [
+                'send_data' => $this->sendData + [
+                    'name' => 'test',
+                    'is_active' => false,
+                    'categories_id' => [$category->id]
+                ],
+                'test_data' => $this->sendData + [
+                    'name' => 'test',
+                    'is_active' => false,
+                ],
+            ],
+            [
+                'send_data' => $this->sendData + [
+                    'categories_id' => [$category->id]
+                ],
+                'test_data' => $this->sendData + [],
+            ]
         ];
-        $response = $this->assertUpdate($data, $data + ['deleted_at' => null]);
-        $response->assertJsonStructure([
-            'created_at', 'updated_at'
-        ]);
+
+        foreach ($data as $key => $value) {
+            $response = $this->assertStore(
+                $value['send_data'],
+                $value['test_data'] + ['deleted_at' => null]
+            );
+            $response->assertJsonStructure([
+                'created_at',
+                'updated_at'
+            ]);
+            $response = $this->assertUpdate(
+                $value['send_data'],
+                $value['test_data'] + ['deleted_at' => null]
+            );
+            $response->assertJsonStructure([
+                'created_at',
+                'updated_at'
+            ]);
+        }
     }
 
     public function testDelete()
